@@ -11,12 +11,12 @@
             line-height: 1.6;
             margin: 0;
             padding: 20px;
-            background-color: #add8e6; /* Albastru deschis */
+            background-color: #ffffe0; /* Galben deschis */
         }
         .container {
             max-width: 800px;
             margin: 0 auto;
-            background-color: #fff;
+            background-color: #ffffe0; /* Galben deschis */
             padding: 20px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
@@ -43,7 +43,7 @@
             padding: 12px;
             border: 1px solid #ddd;
             border-radius: 4px;
-            font-size: 1.2em; 
+            font-size: 1.2em;
         }
         .input-group .unit {
             min-width: 60px;
@@ -93,34 +93,7 @@
             font-weight: bold;
             display: none;
         }
-        .tooltip {
-            position: relative;
-            display: inline-block;
-            cursor: help;
-        }
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 200px;
-            background-color: #555;
-            color: #fff;
-            text-align: center;
-            border-radius: 6px;
-            padding: 5px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -100px;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-            opacity: 1;
-        }
-
-        /* Fundalul diagramei pe galben deschis */
-        canvas#bakChart {
+        canvas {
             background-color: #ffffe0; /* Galben deschis */
         }
     </style>
@@ -130,9 +103,7 @@
         <h1>Calculator de alcoolemie cu diagramă</h1>
         <form id="alcoholForm">
             <div class="form-group">
-                <label for="weight" class="tooltip">Greutate
-                    <span class="tooltiptext">Introduceți greutatea în kilograme.</span>
-                </label>
+                <label for="weight">Greutate</label>
                 <div class="input-group">
                     <input type="number" id="weight" required min="30" max="200">
                     <span class="unit">kg</span>
@@ -140,9 +111,7 @@
             </div>
 
             <div class="form-group">
-                <label for="height" class="tooltip">Înălțime
-                    <span class="tooltiptext">Introduceți înălțimea în centimetri.</span>
-                </label>
+                <label for="height">Înălțime</label>
                 <div class="input-group">
                     <input type="number" id="height" required min="100" max="250">
                     <span class="unit">cm</span>
@@ -150,9 +119,7 @@
             </div>
 
             <div class="form-group">
-                <label for="gender" class="tooltip">Sex
-                    <span class="tooltiptext">Selectați sexul biologic.</span>
-                </label>
+                <label for="gender">Sex</label>
                 <select id="gender" required>
                     <option value="male">Masculin</option>
                     <option value="female">Feminin</option>
@@ -160,9 +127,7 @@
             </div>
 
             <div class="form-group">
-                <label for="duration" class="tooltip">Durata consumului
-                    <span class="tooltiptext">Introduceți durata consumului de alcool în ore.</span>
-                </label>
+                <label for="duration">Durata consumului</label>
                 <div class="input-group">
                     <input type="number" id="duration" required min="0" step="0.5">
                     <span class="unit">ore</span>
@@ -170,9 +135,7 @@
             </div>
 
             <div class="form-group">
-                <label for="beerVolume" class="tooltip">Bere
-                    <span class="tooltiptext">Introduceți cantitatea de bere consumată (în litri).</span>
-                </label>
+                <label for="beerVolume">Bere</label>
                 <div class="input-group">
                     <input type="number" id="beerVolume" min="0" step="0.1">
                     <span class="unit">litri</span>
@@ -180,9 +143,7 @@
             </div>
 
             <div class="form-group">
-                <label for="wineVolume" class="tooltip">Vin
-                    <span class="tooltiptext">Introduceți cantitatea de vin consumată (în litri).</span>
-                </label>
+                <label for="wineVolume">Vin</label>
                 <div class="input-group">
                     <input type="number" id="wineVolume" min="0" step="0.1">
                     <span class="unit">litri</span>
@@ -190,9 +151,7 @@
             </div>
 
             <div class="form-group">
-                <label for="spiritsVolume" class="tooltip">Băuturi spirtoase
-                    <span class="tooltiptext">Introduceți cantitatea de băuturi spirtoase și alegeți unitatea.</span>
-                </label>
+                <label for="spiritsVolume">Băuturi spirtoase</label>
                 <div class="input-group">
                     <input type="number" id="spiritsVolume" min="0" step="0.001">
                     <select id="spiritsUnit">
@@ -217,10 +176,7 @@
     <script>
         let bakChart;
 
-        // Funcții pentru o structurare mai bună a logicii de calcul
-
         function calculateAlcoholGrams(beerVolume, wineVolume, spiritsVolume, spiritsUnit) {
-            // Conținut alcoolic în g/100ml
             const beerAlcohol = 5;
             const wineAlcohol = 12;
             const spiritsAlcohol = 40;
@@ -238,56 +194,39 @@
                     break;
             }
 
-            // Calcul cantitate totală de alcool în grame
-            const alcoholGrams = (beerVolume * 1000 * beerAlcohol / 100 * 0.8) +
-                                 (wineVolume * 1000 * wineAlcohol / 100 * 0.8) +
-                                 (spiritsLiters * 1000 * spiritsAlcohol / 100 * 0.8);
-            return alcoholGrams;
+            return (beerVolume * 1000 * beerAlcohol / 100 * 0.8) +
+                   (wineVolume * 1000 * wineAlcohol / 100 * 0.8) +
+                   (spiritsLiters * 1000 * spiritsAlcohol / 100 * 0.8);
         }
 
         function calculateDistributionFactor(weight, height, gender) {
-            // Calculul factorului de distribuție conform Seidl et al.
-            let r;
             if (gender === 'male') {
-                r = 0.31608 - 0.004821 * weight + 0.004432 * height;
+                return 0.31608 - 0.004821 * weight + 0.004432 * height;
             } else {
-                r = 0.31223 - 0.006446 * weight + 0.004466 * height;
+                return 0.31223 - 0.006446 * weight + 0.004466 * height;
             }
-            return r;
         }
 
-        function calculateBAKData(duration, bakAtDuration) {
-            // Construim un model simplu liniar: de la 0 (ora 0) până la bakAtDuration la durata introdusă
+        function calculateBAK(alcoholGrams, weight, distributionFactor, duration) {
+            let bak = alcoholGrams / (weight * distributionFactor);
+            bak -= bak * 0.15; // Deficit de absorbție
+
             const bakData = [];
             const timeLabels = [];
             const step = 0.5;
-            const steps = duration / step;
 
-            for (let i = 0; i <= steps; i++) {
-                const currentHour = i * step;
-                const currentBAK = (bakAtDuration / duration) * currentHour; 
-                bakData.push(currentBAK);
-                timeLabels.push(currentHour.toFixed(1));
+            for (let hour = 0; hour <= duration; hour += step) {
+                let bakAtTime = bak * (hour / duration); // Creștere liniară
+                bakAtTime = Math.min(bak, bakAtTime); // Limitare la valoarea maximă
+                bakData.push(bakAtTime);
+                timeLabels.push(hour);
             }
 
-            return { timeLabels, bakData };
-        }
-
-        function showError(msg) {
-            const errorDiv = document.getElementById('errorMessages');
-            errorDiv.style.display = 'block';
-            errorDiv.innerHTML = msg;
-        }
-
-        function clearErrors() {
-            const errorDiv = document.getElementById('errorMessages');
-            errorDiv.style.display = 'none';
-            errorDiv.innerHTML = '';
+            return { bak, bakData, timeLabels };
         }
 
         document.getElementById('alcoholForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            clearErrors();
 
             const weight = parseFloat(document.getElementById('weight').value);
             const height = parseFloat(document.getElementById('height').value);
@@ -298,45 +237,21 @@
             const spiritsVolume = parseFloat(document.getElementById('spiritsVolume').value) || 0;
             const spiritsUnit = document.getElementById('spiritsUnit').value;
 
-            // Validări
             if (!weight || !height || !duration) {
-                showError("Vă rugăm să completați toate câmpurile obligatorii (greutate, înălțime, durată).");
-                return;
-            }
-            if (weight < 30 || weight > 200 || height < 100 || height > 250) {
-                showError("Introduceți valori realiste pentru greutate și înălțime.");
-                return;
-            }
-            if (duration <= 0) {
-                showError("Introduceți o durată mai mare de 0 ore.");
-                return;
-            }
-            if (beerVolume === 0 && wineVolume === 0 && spiritsVolume === 0) {
-                showError("Introduceți cel puțin o cantitate de băutură alcoolică.");
-                return;
-            }
-            if (beerVolume > 20 || wineVolume > 20 || spiritsVolume > 20) {
-                showError("Introduceți valori realiste pentru cantitățile de alcool consumate.");
+                document.getElementById('errorMessages').textContent = "Completați toate câmpurile obligatorii.";
                 return;
             }
 
             const alcoholGrams = calculateAlcoholGrams(beerVolume, wineVolume, spiritsVolume, spiritsUnit);
             const distributionFactor = calculateDistributionFactor(weight, height, gender);
 
-            // Calcul BAK teoretic
-            let bak = alcoholGrams / (weight * distributionFactor);
-            bak -= bak * 0.15; // Deficit de absorbție
+            const { bak, bakData, timeLabels } = calculateBAK(alcoholGrams, weight, distributionFactor, duration);
 
-            const bakAtDuration = bak;
-
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = `
+            document.getElementById('result').innerHTML = `
                 <h2>Rezultat:</h2>
-                <p>După ${duration} ore, alcoolemia dvs. este: ${bakAtDuration.toFixed(2)} ‰</p>
+                <p>După ${duration} ore, alcoolemia dumneavoastră este: ${bakData[bakData.length - 1].toFixed(2)} ‰</p>
                 <p><strong>Atenție:</strong> Acest calcul este doar orientativ și nu înlocuiește o evaluare medicală sau juridică. Alcoolemia reală poate varia individual.</p>
             `;
-
-            const { timeLabels, bakData } = calculateBAKData(duration, bakAtDuration);
 
             if (bakChart) {
                 bakChart.destroy();
@@ -351,8 +266,7 @@
                         label: 'Alcoolemie (‰)',
                         data: bakData,
                         borderColor: 'rgb(75, 192, 192)',
-                        tension: 0.1,
-                        fill: false
+                        tension: 0.1
                     }]
                 },
                 options: {
