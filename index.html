@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculator de alcoolemie cu diagramă</title>
+    <title>Calculator de Alcoolemie cu Grafic</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
@@ -11,8 +11,23 @@
             line-height: 1.6;
             margin: 0;
             padding: 20px;
-            background-color: #ffffe0; /* Galben deschis */
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
         }
+
+        @keyframes gradientAnimation {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
         .container {
             max-width: 800px;
             margin: 0 auto;
@@ -21,22 +36,27 @@
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
+
         h1 {
             text-align: center;
             color: #00008b; /* Albastru închis */
         }
+
         .form-group {
             margin-bottom: 15px;
         }
+
         .form-group label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
         }
+
         .input-group {
             display: flex;
             align-items: center;
         }
+
         .input-group input {
             flex-grow: 1;
             margin-right: 10px;
@@ -44,21 +64,37 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 1.2em;
+            transition: transform 0.3s ease, border-color 0.3s ease;
         }
+
+        .input-group input:focus {
+            transform: scale(1.05);
+            border-color: #4CAF50;
+        }
+
         .input-group .unit {
             min-width: 60px;
             text-align: left;
         }
+
         .input-group select {
             padding: 12px;
             border: 1px solid #ddd;
             border-radius: 4px;
             background-color: white;
             font-size: 1.2em;
+            transition: transform 0.3s ease, border-color 0.3s ease;
         }
+
+        .input-group select:focus {
+            transform: scale(1.05);
+            border-color: #4CAF50;
+        }
+
         select#gender {
             width: 100%;
         }
+
         button {
             display: block;
             width: 100%;
@@ -70,19 +106,24 @@
             cursor: pointer;
             font-size: 1.2em;
             margin-top: 20px;
+            transition: transform 0.3s ease;
         }
+
         button:hover {
-            background-color: #45a049;
+            transform: scale(1.05);
         }
+
         #result {
             margin-top: 20px;
             padding: 10px;
             background-color: #e7f3fe;
             border-radius: 4px;
         }
+
         #chartContainer {
             margin-top: 20px;
         }
+
         #errorMessages {
             margin-top: 20px;
             padding: 10px;
@@ -93,14 +134,42 @@
             font-weight: bold;
             display: none;
         }
+
         canvas {
             background-color: #ffffe0; /* Galben deschis */
+        }
+
+        #loadingSpinner {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 1000;
+        }
+
+        .spinner {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #4CAF50;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Calculator de alcoolemie cu diagramă</h1>
+        <h1>Calculator de Alcoolemie cu Grafic</h1>
         <form id="alcoholForm">
             <div class="form-group">
                 <label for="weight">Greutate</label>
@@ -119,7 +188,7 @@
             </div>
 
             <div class="form-group">
-                <label for="gender">Sex</label>
+                <label for="gender">Gen</label>
                 <select id="gender" required>
                     <option value="male">Masculin</option>
                     <option value="female">Feminin</option>
@@ -130,7 +199,7 @@
                 <label for="duration">Durata consumului</label>
                 <div class="input-group">
                     <input type="number" id="duration" required min="0" step="0.5">
-                    <span class="unit">ore</span>
+                    <span class="unit">Ore</span>
                 </div>
             </div>
 
@@ -138,7 +207,7 @@
                 <label for="beerVolume">Bere</label>
                 <div class="input-group">
                     <input type="number" id="beerVolume" min="0" step="0.1">
-                    <span class="unit">litri</span>
+                    <span class="unit">Litri</span>
                 </div>
             </div>
 
@@ -146,7 +215,7 @@
                 <label for="wineVolume">Vin</label>
                 <div class="input-group">
                     <input type="number" id="wineVolume" min="0" step="0.1">
-                    <span class="unit">litri</span>
+                    <span class="unit">Litri</span>
                 </div>
             </div>
 
@@ -171,6 +240,10 @@
         <div id="chartContainer">
             <canvas id="bakChart"></canvas>
         </div>
+    </div>
+
+    <div id="loadingSpinner">
+        <div class="spinner"></div>
     </div>
 
     <script>
@@ -228,6 +301,9 @@
         document.getElementById('alcoholForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            loadingSpinner.style.display = 'flex';
+
             const weight = parseFloat(document.getElementById('weight').value);
             const height = parseFloat(document.getElementById('height').value);
             const gender = document.getElementById('gender').value;
@@ -238,7 +314,8 @@
             const spiritsUnit = document.getElementById('spiritsUnit').value;
 
             if (!weight || !height || !duration) {
-                document.getElementById('errorMessages').textContent = "Completați toate câmpurile obligatorii.";
+                document.getElementById('errorMessages').textContent = "Vă rugăm să completați toate câmpurile.";
+                loadingSpinner.style.display = 'none';
                 return;
             }
 
@@ -249,8 +326,8 @@
 
             document.getElementById('result').innerHTML = `
                 <h2>Rezultat:</h2>
-                <p>După ${duration} ore, alcoolemia dumneavoastră este: ${bakData[bakData.length - 1].toFixed(2)} ‰</p>
-                <p><strong>Atenție:</strong> Acest calcul este doar orientativ și nu înlocuiește o evaluare medicală sau juridică. Alcoolemia reală poate varia individual.</p>
+                <p>După ${duration} ore, concentrația dvs. de alcool din sânge este: ${bakData[bakData.length - 1].toFixed(2)} ‰</p>
+                <p><strong>Notă importantă:</strong> Acest calcul servește doar ca orientare și nu înlocuiește o evaluare medicală sau juridică. Concentrația reală de alcool din sânge poate varia individual.</p>
             `;
 
             if (bakChart) {
@@ -263,14 +340,21 @@
                 data: {
                     labels: timeLabels,
                     datasets: [{
-                        label: 'Alcoolemie (‰)',
+                        label: 'Concentrația de alcool din sânge (‰)',
                         data: bakData,
                         borderColor: 'rgb(75, 192, 192)',
-                        tension: 0.1
+                        tension: 0.1,
+                        fill: false,
+                        pointRadius: 0,
+                        borderWidth: 2
                     }]
                 },
                 options: {
                     responsive: true,
+                    animation: {
+                        duration: 2000,
+                        easing: 'easeInOutQuad'
+                    },
                     scales: {
                         x: {
                             title: {
@@ -281,13 +365,15 @@
                         y: {
                             title: {
                                 display: true,
-                                text: 'Alcoolemie (‰)'
+                                text: 'Alcoolemie (‰)',
                             },
                             min: 0
                         }
                     }
                 }
             });
+
+            loadingSpinner.style.display = 'none';
         });
     </script>
 </body>
